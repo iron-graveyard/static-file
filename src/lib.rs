@@ -91,7 +91,7 @@ impl Static {
     }
 
 
-    /// Private function
+    /// Privately handles normalized paths after aliases are taken into account.
     fn serve_file(&mut self, requested_path: String, req: &mut Request, res: &mut Response, alloy: &mut Alloy) -> Status {
         let relative_path = "./".to_string().append(requested_path.as_slice());
         let path = &self.root_path.join(Path::new(relative_path));
