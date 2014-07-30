@@ -23,6 +23,7 @@ use mount::OriginalUrl;
 /// The static file-serving `Middleware`.
 #[deriving(Clone)]
 pub struct Static {
+    alias: Option<&'static str>,
     root_path: Path
 }
 
@@ -50,6 +51,22 @@ impl Static {
     /// If the path is '/', it will attempt to serve `index.html`.
     pub fn new(root_path: Path) -> Static {
         Static {
+            alias: None,
+            root_path: root_path
+        }
+    }
+
+    /// Create a new instance of `Static` with a given root path, but aliased.
+    ///
+    /// This function is identical to new() except that it aliases urls to
+    /// to static files. For example, imagine test.txt is stored in ./foo
+    /// directory:
+    ///
+    /// + Static::new("foo/") - browser will serve test.txt at /test.txt
+    /// + Static::alias("foo/", "/bar/") - test.txt at /bar/test.txt instead
+    pub fn alias<'a>(root_path: Path, alias: &'static str) -> Static {
+        Static {
+            alias: Some(alias),
             root_path: root_path
         }
     }
@@ -72,25 +89,19 @@ impl Static {
             favicon_path: favicon_path
         }
     }
-}
 
-impl Middleware for Static {
-    fn enter(&mut self, req: &mut Request, res: &mut Response, alloy: &mut Alloy) -> Status {
-        // Coerce to relative path.
-        // We include the slash to ensure that you never have a path like ".index.html"
-        // when you meant "./index {
-        let requested_path =
-            &self.root_path.join(Path::new("./".to_string().append(req.url.as_slice())));
 
-        if requested_path.is_file() {
-            match res.serve_file(requested_path) {
+    /// Privately handles normalized paths after aliases are taken into account.
+    fn serve_file(&mut self, requested_path: String, req: &mut Request, res: &mut Response, alloy: &mut Alloy) -> Status {
+        let relative_path = "./".to_string().append(requested_path.as_slice());
+        let path = &self.root_path.join(Path::new(relative_path));
+        if path.is_file() {
+            match res.serve_file(path) {
                 Ok(()) => {
-                    debug!("Serving static file at {}", requested_path.display());
+                    debug!("Serving static file at {}", path.display());
                     return Unwind;
                 },
-                Err(e) => {
-                    error!("Errored trying to send file at {} with {}",
-                          requested_path.display(), e);
+                Err(_) => {
                     return Continue;
                 }
             }
@@ -98,14 +109,14 @@ impl Middleware for Static {
 
         // Check for index.html
         let index_path = self.root_path.join(
-            Path::new("./".to_string().append(req.url.as_slice()))
+            Path::new("./".to_string().append(requested_path.as_slice()))
                 .join("./index.html".to_string())
         );
 
         // Avoid serving a directory
         if index_path.is_file() {
             if req.url.len() > 0 {
-                match req.url.as_slice().char_at_reverse(req.url.len()) {
+                match requested_path.as_slice().char_at_reverse(requested_path.len()) {
                     '/' => {
                         match res.serve_file(&index_path) {
                             Ok(()) => {
@@ -125,7 +136,7 @@ impl Middleware for Static {
 
             let redirect_path = match alloy.find::<OriginalUrl>() {
                 Some(&OriginalUrl(ref original_url)) => original_url.clone(),
-                None => req.url.clone()
+                None => requested_path.clone()
             }.append("/");
             res.headers.extensions.insert("Location".to_string(), redirect_path.clone());
             let _ = res.serve(::http::status::SeeOther,
@@ -134,6 +145,38 @@ impl Middleware for Static {
         }
 
         Continue
+    }
+}
+
+impl Middleware for Static {
+    fn enter(&mut self, req: &mut Request, res: &mut Response, alloy: &mut Alloy) -> Status {
+        // Coerce to relative path.
+        // We include the slash to ensure that you never have a path like ".index.html"
+        // when you meant "./index {
+        let requested_path = "./".to_string().append(req.url.as_slice());
+
+        match self.alias {
+            Some(a) => {
+                let mut re_str = String::from_str("^");
+                re_str.push_str(a);
+                match regex::Regex::new(re_str.as_slice()) {
+                    Ok(re) => {
+                        if (re.is_match(req.url.as_slice())) {
+                            debug!("Staticfile alias ({}) matches current url ({})", a, req.url.as_slice());
+                            let replaced_path = re.replace(req.url.as_slice(), "");
+                            return self.serve_file(replaced_path, req, res, alloy);
+                        } else {
+                            debug!("Staticfile alias ({}) does NOT match current url ({})", a, req.url.as_slice());
+                            return Continue;
+                        }
+                    },
+                    Err(err) => fail!("{}", err),
+                };
+            },
+            None => {
+                return self.serve_file(requested_path, req, res, alloy);
+            },
+        };
     }
 }
 
