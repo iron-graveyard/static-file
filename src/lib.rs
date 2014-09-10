@@ -79,7 +79,7 @@ impl Handler for Static {
                     return Ok(response);
                 },
                 Err(err) => {
-                    return Err(box FileError(err) as Box<Error + Send>);
+                    return Err(box FileError(err) as Box<Error>);
                 }
             }
         }
@@ -102,7 +102,7 @@ impl Handler for Static {
                             return Ok(response);
                         },
                         Err(err) => {
-                            return Err(box FileError(err) as Box<Error + Send>);
+                            return Err(box FileError(err) as Box<Error>);
                         }
                     }
                 },
@@ -124,6 +124,6 @@ impl Handler for Static {
         }
 
         // If no file is found, return an appropriate error.
-        Err(box NoFile as Box<Error + Send>)
+        Err(box NoFile as Box<Error>)
     }
 }
