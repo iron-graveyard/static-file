@@ -117,8 +117,9 @@ impl Handler for Static {
         }
 
         // If no file is found, return a 404 response.
-        Ok(Response::status(
-            status::Status::from_code_and_reason(404, "Not Found".to_string())
+        Ok(Response::with(
+            status::Status::from_code_and_reason(404, "Not Found".to_string()),
+            "File not found",
         ))
     }
 }

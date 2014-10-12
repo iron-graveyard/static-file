@@ -39,7 +39,10 @@ fn returns_404_if_file_not_found() {
     let st = Static::new(p.root());
     let mut req = mock::request::at(Get, Url::parse("http://localhost:3000").unwrap());
     match st.call(&mut req) {
-        Ok(res) => assert_eq!(res.status.unwrap().code(), 404),
+        Ok(res) => {
+            assert_eq!(res.status.unwrap().code(), 404);
+            assert!(res.body.is_some());
+        },
         Err(e) => fail!("{}", e)
     }
 }
