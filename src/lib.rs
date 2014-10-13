@@ -14,7 +14,7 @@ extern crate iron;
 extern crate log;
 extern crate mount;
 
-use iron::{Request, Response, Url, Handler, Error, IronResult};
+use iron::{Request, Response, Url, Handler, Error, IronError, IronResult};
 use iron::status;
 use mount::OriginalUrl;
 use std::io::IoError;
@@ -126,5 +126,20 @@ impl Handler for Static {
 
         // If no file is found, return an appropriate error.
         Err(NoFile.erase())
+    }
+
+    fn catch(&self, _: &mut Request, err: IronError) -> (Response, IronResult<()>) {
+        // I'm not sure if comparing error names is the right approach here, but
+        // I couldn't think of anything else besides TypeId, which doesn't seem
+        // any better.
+        if err.name() == NoFile.name() {
+            let response = Response::with(
+                status::Status::from_code_and_reason(404, "Not Found".to_string()),
+                "File not found",
+            );
+            return (response, Ok(()));
+        }
+
+        (Response::status(status::InternalServerError), Err(err))
     }
 }
