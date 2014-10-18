@@ -34,17 +34,9 @@ pub struct Static {
     root_path: Path
 }
 
-/// The error returned when a requested URL doesn't map to a real file.
-#[deriving(Show)]
-pub struct NoFile;
-
 /// The error returned when an IoError occurs during file serving.
 #[deriving(Show)]
 pub struct FileError(IoError);
-
-impl Error for NoFile {
-    fn name(&self) -> &'static str { "No File" }
-}
 
 impl Error for FileError {
     fn name(&self) -> &'static str {
