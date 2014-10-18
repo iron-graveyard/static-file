@@ -131,7 +131,7 @@ impl Handler for Static {
     fn catch(&self, _: &mut Request, err: IronError) -> (Response, IronResult<()>) {
         if err.is::<NoFile>() {
             let response = Response::with(
-                status::Status::from_code_and_reason(404, "Not Found".to_string()),
+                status::NotFound,
                 "File not found",
             );
             return (response, Ok(()));
