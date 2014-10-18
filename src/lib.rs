@@ -14,7 +14,7 @@ extern crate iron;
 extern crate log;
 extern crate mount;
 
-use iron::{Request, Response, Url, Handler, Error, ErrorRefExt, IronError, IronResult};
+use iron::{Request, Response, Url, Handler, Error, IronResult};
 use iron::status;
 use mount::OriginalUrl;
 use std::io::IoError;
@@ -124,19 +124,7 @@ impl Handler for Static {
             return Ok(res);
         }
 
-        // If no file is found, return an appropriate error.
-        Err(NoFile.erase())
-    }
-
-    fn catch(&self, _: &mut Request, err: IronError) -> (Response, IronResult<()>) {
-        if err.is::<NoFile>() {
-            let response = Response::with(
-                status::NotFound,
-                "File not found",
-            );
-            return (response, Ok(()));
-        }
-
-        (Response::status(status::InternalServerError), Err(err))
+        // If no file is found, return a 404 response.
+        Ok(Response::with(status::NotFound, "File not found"))
     }
 }

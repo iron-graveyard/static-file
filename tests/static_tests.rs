@@ -6,7 +6,7 @@ extern crate "static_file" as static_file;
 use http::method::Get;
 use iron::{Error, Url, Handler};
 use iron_test::{mock, ProjectBuilder};
-use static_file::{NoFile, Static};
+use static_file::Static;
 
 #[test]
 fn serves_non_default_file_from_absolute_root_path() {
@@ -39,18 +39,11 @@ fn returns_404_if_file_not_found() {
     let st = Static::new(p.root());
     let mut req = mock::request::at(Get, Url::parse("http://localhost:3000").unwrap());
 
-    // I'm not too happy about calling catch directly. I think it assumes too
-    // much about the implementation details and that the test should operate on
-    // a higher level. The alternative I see would be to duplicate Iron's
-    // request handling logic here (call `call`, then call `catch` on error),
-    // but that would be more complex without improving the situation overall.
-    let (response, error) = st.catch(&mut req, NoFile.erase());
-
-    assert_eq!(response.status.unwrap().code(), 404);
-    assert!(response.body.is_some());
-
-    match error {
-        Err(e) => fail!("{}", e),
-        _ => ()
+    match st.call(&mut req) {
+        Ok(res) => {
+            assert_eq!(res.status.unwrap().code(), 404);
+            assert!(res.body.is_some());
+        },
+        Err(e) => fail!("{}", e)
     }
 }
