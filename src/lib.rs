@@ -20,4 +20,5 @@ extern crate mount;
 pub use static_handler::Static;
 
 
+mod requested_path;
 mod static_handler;
