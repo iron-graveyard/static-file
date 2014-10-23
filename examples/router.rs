@@ -40,7 +40,7 @@ fn main() {
 
     let mut mount = Mount::new();
     mount
-        .mount("/", router);
+        .mount("/", router)
         .mount("/docs/", docs);
 
     Iron::new(mount).listen(Ipv4Addr(127, 0, 0, 1), 3000);
