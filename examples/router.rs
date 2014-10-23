@@ -33,13 +33,15 @@ fn say_hello(req: &mut Request) -> IronResult<Response> {
 
 fn main() {
     let mut router = Router::new();
-    router.get("/hello", say_hello);
+    router
+        .get("/hello", say_hello);
 
     let docs = Static::new(Path::new("target/doc"));
 
     let mut mount = Mount::new();
-    mount.mount("/", router);
-    mount.mount("/docs/", docs);
+    mount
+        .mount("/", router);
+        .mount("/docs/", docs);
 
     Iron::new(mount).listen(Ipv4Addr(127, 0, 0, 1), 3000);
 }
