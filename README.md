@@ -1,3 +1,17 @@
+<div style="border: dashed 4px firebrick; text-align: center">
+
+### Deprecation Notice
+
+
+This middleware has been renamed to [__static__](https://github.com/iron/static).
+
+
+[__Static-file__](#) will no longer be maintained, but is left here for the sake of lingering dependencies.<br>
+You should update your `Cargo.toml` to use [__static__](https://github.com/iron/static) at its new location: <https://github.com/iron/static>.
+
+</div>
+<!-- This comment is necessary for the markdown above to render correctly -->
+
 static-file [![Build Status](https://secure.travis-ci.org/iron/static-file.png?branch=master)](https://travis-ci.org/iron/static-file)
 ====
 
