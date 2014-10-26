@@ -1,4 +1,5 @@
 #![crate_name = "static_file"]
+#![deprecated = "use https://github.com/iron/static instead"]
 #![deny(missing_doc)]
 #![feature(phase)]
 
