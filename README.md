@@ -1,3 +1,12 @@
+## Deprecation Notice
+
+This middleware has been renamed to [__static__](https://github.com/iron/static).<br>
+[__Static-file__](#) will no longer be maintained, but is left here for the sake of lingering dependencies.
+
+You should update your `Cargo.toml` to use [__static__](https://github.com/iron/static) at its new location: <https://github.com/iron/static>.
+
+---
+
 static-file [![Build Status](https://secure.travis-ci.org/iron/static-file.png?branch=master)](https://travis-ci.org/iron/static-file)
 ====
 
